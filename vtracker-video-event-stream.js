@@ -24,14 +24,14 @@ class VTrackerVideoEventStream extends EventEmitter {
 
 
     /**
-     * @param {number} streamId
+     * @param {number | (number | string | (number | string)[])[]} stream
      * @param {string} token
      * @param {string} resume
      * @param {boolean} entity
      */
-    constructor(streamId, token, resume, entity) {
+    constructor(stream, token, resume, entity) {
         super();
-        this.streamId = streamId;
+        this.stream = stream;
         this.token = token;
         this.resume = resume;
         this.entity = entity;
@@ -42,12 +42,20 @@ class VTrackerVideoEventStream extends EventEmitter {
         let isError = false;
         try {
             const params = {};
+            let url = `https://api.vtracker.app/v2/videos/youtube/streams/`;
             if (this.resume !== undefined)
                 params.resume = this.resume;
+
             if (this.entity)
                 params.entity = true;
 
-            const res = await axios.get(`https://api.vtracker.app/v2/videos/youtube/streams/${this.streamId}`, {
+            if(Array.isArray(this.stream)) {
+                params.rules = JSON.stringify(this.stream);
+                url += 'combinations'
+            }else
+                url += this.stream;
+
+            const res = await axios.get(url, {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 },
